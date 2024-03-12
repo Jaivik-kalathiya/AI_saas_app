@@ -22,10 +22,10 @@ export const connectToDatabase = async () => {
       dbName: "imaginify",
       bufferCommands: false,
     });
-
+    
     cached.conn = await cached.promise;
 
-    
+
 };
 
 
