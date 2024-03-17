@@ -19,7 +19,7 @@
 //   cached.promise =
 //     cached.promise ||
 //     mongoose.connect(MONGODB_URL, {
-//       dbName: "Imaginify",
+//       dbName: "imaginify",
 //       bufferCommands: false,
 //     });
     
