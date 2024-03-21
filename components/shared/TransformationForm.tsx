@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { defaultValues, aspectRatioOptions } from "@/constants";
+import { defaultValues, aspectRatioOptions, creditFee } from "@/constants";
 import { CustomField } from "./CustomField";
 import { transformationTypes } from "@/constants";
 import { useState,useEffect,useTransition } from "react";
@@ -33,6 +33,7 @@ import { updateCredits } from "@/lib/actions/user.actions";
 import { getCldImageUrl } from "next-cloudinary";
 import { addImage } from "@/lib/actions/image.actions";
 import { useRouter } from "next/navigation"
+import { InsufficientCreditsModal } from "./InsufficientCreditModal";
 
 
 // schema of the form
@@ -184,7 +185,7 @@ const TransforamationForm = ({
     setNewTransformation(null)
 
     startTransition(async () => {
-      await updateCredits(userId, -1)
+      await updateCredits(userId, creditFee)
     })
   }
 
@@ -200,6 +201,7 @@ const TransforamationForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {creditBalance <Math.abs(creditFee) && <InsufficientCreditsModal/>}
         {/* custom form */}
 
         <CustomField 
