@@ -16,6 +16,7 @@ const AddTransformationTypePage = async ({ params: { type } }: SearchParamProps)
   if(!userId) redirect('/sign-in')
 
   const user = await getUserById(userId);
+  // console.log("near user")
 
   return (
     <>

@@ -28,6 +28,13 @@ import { transformationTypes } from "@/constants";
 import { useState,useEffect,useTransition } from "react";
 import { AspectRatioKey,debounce,deepMergeObjects } from "@/lib/utils";
 import MediaUploader from "./MediaUploader";
+import TransformedImage from "./TransformedImage";
+import { updateCredits } from "@/lib/actions/user.actions";
+import { getCldImageUrl } from "next-cloudinary";
+import { addImage } from "@/lib/actions/image.actions";
+import { useRouter } from "next/navigation"
+
+
 // schema of the form
 export const formSchema = z.object({
   title: z.string(),
@@ -54,6 +61,9 @@ const TransforamationForm = ({
   const [newTransformation, setNewTransformation] =
     useState<Transformations | null>(null);
 
+
+    const router = useRouter();
+
   const initialValues =
     data && action === "Update"
       ? {
@@ -74,8 +84,52 @@ const TransforamationForm = ({
   // 2. Define a submit handler.
 
   //  action on submitting form 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
+    if(data || image){
+      const transformationUrl = getCldImageUrl({
+        width:image?.width,
+        height:image?.height,
+        src:image?.publicId,
+        ...transformationConfig
+
+      }) 
+
+      const imageData = {
+        title: values.title,
+        publicId: image?.publicId,
+        transformationType: type,
+        width: image?.width,
+        height: image?.height,
+        config: transformationConfig,
+        secureURL: image?.secureURL,
+        transformationURL: transformationUrl,
+        aspectRatio: values.aspectRatio,
+        prompt: values.prompt,
+        color: values.color,
+      }
+
+      if(action === "Add"){
+        try{
+
+            const newImage = await addImage({
+               image:imageData,
+               userId,
+               path: '/',
+            })
+
+            if(newImage){
+              form.reset()
+              setImage(data);
+              router.push(`/transformations/${newImage._id}`)
+
+            }
+
+        }catch(error){
+            console.log(error);
+        }
+      }
+    }
   }
 
  
@@ -130,7 +184,7 @@ const TransforamationForm = ({
     setNewTransformation(null)
 
     startTransition(async () => {
-      // await updateCredits(userId, creditFee)
+      await updateCredits(userId, -1)
     })
   }
 
@@ -243,6 +297,7 @@ const TransforamationForm = ({
                         render={({field})=>(
 
                             <MediaUploader
+                            image={image}
                             onValueChange={field.onChange}
                             setImage={setImage}
                             publicId ={field.value}
@@ -250,7 +305,17 @@ const TransforamationForm = ({
                             /> 
                         )}
                       />
+                       <TransformedImage 
+            image={image}
+            type={type}
+            title={form.getValues().title}
+            isTransforming={isTransforming}
+            setIsTransforming={setIsTransforming}
+            transformationConfig={transformationConfig}
+          />
                     </div>
+                    
+
                     
           <div className="flex flex-col gap-4">
 
@@ -270,6 +335,9 @@ const TransforamationForm = ({
           {isSubmitting ? "Submitting..." : "Save Image"}
         </Button>
           </div>
+
+
+
       </form>
     </Form>
   );
